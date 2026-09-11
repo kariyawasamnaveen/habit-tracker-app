@@ -2,7 +2,7 @@
 ![Dart Version](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-# Habit Tracker App 🚀
+# Habit Tracker App
 
 A feature-rich, beautifully designed Habit Tracker mobile application built with Flutter. This app helps users build and maintain positive daily habits with features like user authentication, local data persistence, daily scheduled push notifications, and a motivational quote of the day fetched via an external API.
 
@@ -22,9 +22,7 @@ A feature-rich, beautifully designed Habit Tracker mobile application built with
 
 ## Demo
 
-GitHub now supports inline MP4 videos! You can drag and drop your video file into this README editor on GitHub to embed it directly. Alternatively, you can view the local demo file here:
-
-[🎬 **Watch the Demo Video**](assets_readme/demo.mp4)
+<video src="https://github.com/user-attachments/assets/d6177a51-0c6a-42a5-821d-b084b497e733" controls width="600"></video>
 
 ## Features
 
