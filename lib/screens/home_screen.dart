@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:habit_app/data_manager.dart';
+import 'package:habit_app/utils/color_utils.dart';
+import 'package:habit_app/utils/constants.dart';
+import 'package:habit_app/widgets/quote_card.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/habit_provider.dart';
+import 'package:habit_app/providers/user_provider.dart';
 import 'package:habit_app/screens/configure_habit_screen.dart';
 import 'package:habit_app/screens/login_screen.dart';
 import 'package:habit_app/screens/personal_info_screen.dart';
@@ -16,9 +21,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Map<String, dynamic> _habits = {};
-  Map<String, dynamic> _completedHabits = {};
-  
   String? _quoteText;
   String? _quoteAuthor;
   bool _isLoadingQuote = true;
@@ -26,13 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHabits();
     _fetchQuoteOfDay();
   }
 
   Future<void> _fetchQuoteOfDay() async {
     try {
-      final response = await http.get(Uri.parse('https://zenquotes.io/api/today'));
+      final response = await http.get(Uri.parse(Constants.zenQuotesApiUrl));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data.isNotEmpty) {
@@ -58,23 +59,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _loadHabits() {
-    setState(() {
-      _habits = DataManager.selectedHabitsMap;
-      _completedHabits = DataManager.completedHabitsMap;
-    });
-  }
-
-  Color _parseColor(String hexStr) {
-    if (hexStr.length == 6) {
-      hexStr = "FF$hexStr";
-    }
-    return Color(int.parse(hexStr, radix: 16));
-  }
 
   @override
   Widget build(BuildContext context) {
-    final userName = DataManager.name.isNotEmpty ? DataManager.name : 'Test User';
+    final userProvider = Provider.of<UserProvider>(context);
+    final habitProvider = Provider.of<HabitProvider>(context);
+
+    final Map<String, dynamic> habitsMap = {
+      for (var h in habitProvider.selectedHabits) h.name: h.colorHex
+    };
+    final Map<String, dynamic> completedHabitsMap = {
+      for (var h in habitProvider.completedHabits) h.name: h.colorHex
+    };
+
+    final userName = userProvider.profile.name.isNotEmpty ? userProvider.profile.name : 'Test User';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Configure', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigureHabitScreen())).then((_) => _loadHabits());
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigureHabitScreen()));
               },
             ),
             ListTile(
@@ -115,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Personal Info', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const PersonalInfoScreen())).then((_) => _loadHabits());
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const PersonalInfoScreen()));
               },
             ),
             ListTile(
@@ -138,8 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.logout, color: Colors.black87),
               title: const Text('Sign Out', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
               onTap: () async {
-                await DataManager.logout();
-                if (mounted) {
+                await userProvider.logout();
+                if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => const LoginScreen()),
                     (route) => false,
@@ -156,76 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               // --- Quote of the Day Section ---
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2575FC).withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: _isLoadingQuote
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.format_quote, color: Colors.white70, size: 24),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Quote of the Day',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              '"$_quoteText"',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontStyle: FontStyle.italic,
-                                fontWeight: FontWeight.w500,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '- $_quoteAuthor',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
+              QuoteCard(
+                isLoading: _isLoadingQuote,
+                quoteText: _quoteText,
+                quoteAuthor: _quoteAuthor,
               ),
               const SizedBox(height: 15),
 
@@ -247,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               
               // Habit List
-              _habits.isEmpty
+              habitsMap.isEmpty
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Text(
@@ -259,19 +191,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: _habits.length,
+                      itemCount: habitsMap.length,
                       itemBuilder: (context, index) {
-                        String habitName = _habits.keys.elementAt(index);
-                        String colorHex = _habits[habitName];
-                        Color cardColor = _parseColor(colorHex);
+                        String habitName = habitsMap.keys.elementAt(index);
+                        String colorHex = habitsMap[habitName];
+                        Color cardColor = ColorUtils.parseColor(colorHex);
 
                         return Dismissible(
                           key: Key(habitName),
                           direction: DismissDirection.endToStart, // Swipe right to left
                           onDismissed: (direction) async {
-                            await DataManager.markHabitDone(habitName, colorHex);
-                            _loadHabits();
-                            if (mounted) {
+                            final targetHabit = habitProvider.selectedHabits.firstWhere((h) => h.name == habitName);
+                            await habitProvider.markDone(targetHabit);
+                            if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('$habitName marked as done!')),
                               );
@@ -306,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   blurRadius: 5,
                                   offset: const Offset(0, 3),
                                 ),
@@ -350,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 15),
                     
-                    if (_completedHabits.isEmpty)
+                    if (completedHabitsMap.isEmpty)
                       const Text(
                         'Swipe left on an activity to mark as done.',
                         style: TextStyle(color: Colors.black38, fontSize: 13, fontWeight: FontWeight.w500),
@@ -360,19 +292,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: _completedHabits.length,
+                        itemCount: completedHabitsMap.length,
                         itemBuilder: (context, index) {
-                          String habitName = _completedHabits.keys.elementAt(index);
-                          String colorHex = _completedHabits[habitName];
-                          Color cardColor = _parseColor(colorHex);
+                          String habitName = completedHabitsMap.keys.elementAt(index);
+                          String colorHex = completedHabitsMap[habitName];
+                          Color cardColor = ColorUtils.parseColor(colorHex);
 
                           return Dismissible(
                             key: Key('done_$habitName'),
                             direction: DismissDirection.startToEnd,
                             onDismissed: (direction) async {
-                              await DataManager.undoHabitDone(habitName, colorHex);
-                              _loadHabits();
-                              if (mounted) {
+                              final targetHabit = habitProvider.completedHabits.firstWhere((h) => h.name == habitName);
+                              await habitProvider.undoDone(targetHabit);
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text('$habitName marked as To Do!')),
                                 );
@@ -406,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 5,
                                   offset: const Offset(0, 3),
                                 ),
@@ -456,7 +388,6 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             MaterialPageRoute(builder: (context) => const ConfigureHabitScreen()),
           );
-          _loadHabits();
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),

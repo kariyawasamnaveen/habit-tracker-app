@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:habit_app/widgets/premium_text_field.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/user_provider.dart';
 import 'package:habit_app/screens/register_screen.dart';
 import 'package:habit_app/screens/home_screen.dart';
 import 'package:habit_app/data_manager.dart';
@@ -35,8 +40,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (username == savedUsername && password == savedPassword) {
-      await DataManager.setIsLoggedIn(true);
+    final bytes = utf8.encode(password);
+    final hashedPassword = sha256.convert(bytes).toString();
+
+    if (username == savedUsername && hashedPassword == savedPassword) {
+      await Provider.of<UserProvider>(context, listen: false).login();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -75,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 60),
                 
                 // Premium Username Field
-                _buildPremiumTextField(
+                PremiumTextField(
                   controller: _usernameController,
                   hint: 'manusha@gmail.com',
                   icon: Icons.email,
@@ -83,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 25),
                 
                 // Premium Password Field
-                _buildPremiumTextField(
+                PremiumTextField(
                   controller: _passwordController,
                   hint: '........',
                   icon: Icons.lock,
@@ -109,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3), // Soft shadow for depth
+                            color: Colors.black.withValues(alpha: 0.3), // Soft shadow for depth
                             blurRadius: 30,
                             offset: const Offset(0, 15),
                           ),
@@ -169,39 +177,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPremiumTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool obscureText = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25), // Soft, blended shadow
-            blurRadius: 35,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        style: const TextStyle(color: Colors.black87, fontSize: 16),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade500),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 15, right: 10),
-            child: Icon(icon, color: const Color(0xFF1877F2), size: 22),
-          ),
-          border: InputBorder.none, // Removes harsh edges
-          contentPadding: const EdgeInsets.symmetric(vertical: 14.0), // Reduced from 18 to make fields less tall
-        ),
-      ),
-    );
-  }
 }

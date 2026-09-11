@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -61,18 +62,18 @@ class NotificationService {
   }
 
   static Future<void> scheduleDailyNotifications() async {
-    print('--- Notification Scheduling Started ---');
+    debugPrint('--- Notification Scheduling Started ---');
     await flutterLocalNotificationsPlugin.cancelAll();
-    print('Canceled previous notifications.');
+    debugPrint('Canceled previous notifications.');
 
     if (!DataManager.isNotificationsEnabled) {
-      print('Notifications are disabled. Stopping.');
+      debugPrint('Notifications are disabled. Stopping.');
       return;
     }
 
     final habits = DataManager.notificationHabits;
     if (habits.isEmpty) {
-      print('No habits selected. Stopping.');
+      debugPrint('No habits selected. Stopping.');
       return;
     }
 
@@ -86,11 +87,11 @@ class NotificationService {
       hour = 20;
     }
 
-    print('Selected Time: $timeStr ($hour:$minute)');
-    print('Selected Habits: ${habits.join(", ")}');
+    debugPrint('Selected Time: $timeStr ($hour:$minute)');
+    debugPrint('Selected Habits: ${habits.join(", ")}');
 
     final scheduledDate = _nextInstanceOfTime(hour, minute);
-    print('Scheduled Exact Date/Time: $scheduledDate');
+    debugPrint('Scheduled Exact Date/Time: $scheduledDate');
 
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
@@ -115,7 +116,7 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
     );
-    print('--- Notification Successfully Scheduled! ---');
+    debugPrint('--- Notification Successfully Scheduled! ---');
   }
 
   static Future<void> showTestNotification() async {

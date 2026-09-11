@@ -1,17 +1,78 @@
-# Habit Tracker App - SkillUp EdTech
+![Flutter Version](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
+![Dart Version](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-A feature-rich Habit Tracker mobile application built with Flutter. This app helps users build and maintain positive daily habits with features like user authentication, local data persistence, daily scheduled push notifications, and a motivational quote of the day fetched via an external API.
+# Habit Tracker App 🚀
 
-## User Stories
+A feature-rich, beautifully designed Habit Tracker mobile application built with Flutter. This app helps users build and maintain positive daily habits with features like user authentication, local data persistence, daily scheduled push notifications, and a motivational quote of the day fetched via an external API.
 
-Here are the 9 core user stories implemented in this application:
+## Screenshots
 
-1. **User Authentication (Sign Up):** As a new user, I want to be able to sign up using my email so that I can create a personal account.
-2. **User Authentication (Log In):** As a registered user, I want to be able to log in securely so that I can access my habit tracking dashboard.
-3. **Profile Setup:** As a user, I want to set up my profile with my name, age, and country so that my experience is personalized.
-4. **Habit Configuration:** As a user, I want to create a new habit and assign a custom color to it so that I can easily distinguish it from others.
-5. **Dashboard View:** As a user, I want to see my daily habits on the dashboard so that I know what I need to do today.
-6. **Habit Tracking:** As a user, I want to swipe a habit to mark it as completed so that I can track my daily progress.
-7. **Data Persistence:** As a user, I want my data to be saved locally on my device so that I don't lose my habits when I close the app.
-8. **Scheduled Notifications:** As a user, I want to receive daily push notifications at my preferred time (Morning/Afternoon/Evening) so that I am reminded to complete my habits.
-9. **External API (Motivational Quote):** As a user, I want to see a motivational quote of the day on my dashboard so that I feel inspired to achieve my goals.
+| User Registration | User Login | Profile Setup |
+| :---: | :---: | :---: |
+| <img src="assets_readme/1_user_registration.png" width="250"> | <img src="assets_readme/2_user_login.png" width="250"> | <img src="assets_readme/3_profile_setup.png" width="250"> |
+
+| Add Habit | Dashboard (API) | Habit Interaction |
+| :---: | :---: | :---: |
+| <img src="assets_readme/4_add_habit.png" width="250"> | <img src="assets_readme/5_home_dashboard_api.png" width="250"> | <img src="assets_readme/6_habit_interaction.png" width="250"> |
+
+| Navigation Drawer | Push Notifications | Progress Chart |
+| :---: | :---: | :---: |
+| <img src="assets_readme/7_navigation_drawer.png" width="250"> | <img src="assets_readme/8_push_notifications.png" width="250"> | <img src="assets_readme/9_progress_chart.png" width="250"> |
+
+## Demo
+
+GitHub now supports inline MP4 videos! You can drag and drop your video file into this README editor on GitHub to embed it directly. Alternatively, you can view the local demo file here:
+
+[🎬 **Watch the Demo Video**](assets_readme/demo.mp4)
+
+## Features
+
+1. **User Authentication (Sign Up):** Create a personal account securely.
+2. **User Authentication (Log In):** Log in securely to access your personal dashboard.
+3. **Profile Setup:** Set up a personalized profile with your name, age, and country.
+4. **Habit Configuration:** Create custom habits and assign distinct colors for easy tracking.
+5. **Dashboard View:** View your daily to-do list at a glance on the main dashboard.
+6. **Habit Tracking:** Swipe gestures to mark habits as completed and track daily progress.
+7. **Data Persistence:** Habits and configurations are saved locally on your device.
+8. **Scheduled Notifications:** Receive daily push notifications at preferred times (Morning/Afternoon/Evening) as reminders.
+9. **External API (Motivational Quote):** Stay inspired with a motivational quote of the day fetched automatically.
+
+## Architecture & Security
+
+This project strictly adheres to professional software engineering patterns:
+
+*   **Clean Architecture:** The application separates concerns meticulously into `models`, `providers`, `repositories`, `screens`, and `services`.
+*   **Provider Pattern:** Reactive and scalable state management is handled using `ChangeNotifierProvider` and `Consumer` widgets.
+*   **Repository Pattern:** `SharedPreferences` is entirely abstracted behind repository classes, keeping the business logic agnostic of the storage mechanism.
+*   **SHA-256 Hashing:** User passwords are securely hashed using cryptographic SHA-256 algorithms before storage; plain-text passwords are never saved.
+
+## Tech Stack
+
+*   **Framework:** [Flutter](https://flutter.dev/)
+*   **Language:** [Dart](https://dart.dev/)
+*   **State Management:** `provider`
+*   **Local Storage:** `shared_preferences`
+*   **Background Tasks/Alerts:** `flutter_local_notifications`, `timezone`
+*   **Security:** `crypto` (SHA-256)
+*   **Networking:** `http`
+
+## Getting Started
+
+To run this project locally, ensure you have Flutter installed on your machine.
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/habit-tracker-app.git
+   cd habit-tracker-app/habit_app
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the app:**
+   ```bash
+   flutter run
+   ```

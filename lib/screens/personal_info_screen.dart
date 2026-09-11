@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:habit_app/data_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/user_provider.dart';
+import 'package:habit_app/models/user_profile.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -26,21 +28,34 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController.text = DataManager.name;
-    _usernameController.text = DataManager.username;
-    _age = DataManager.age.toDouble();
-    if (_age < 18) _age = 25;
-    _selectedCountry = DataManager.country;
-    if (!_countries.contains(_selectedCountry)) {
-      _selectedCountry = 'United States';
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final profile = userProvider.profile;
+      
+      setState(() {
+        _nameController.text = profile.name;
+        _usernameController.text = profile.username;
+        _age = profile.age.toDouble();
+        if (_age < 18) _age = 25;
+        _selectedCountry = profile.country;
+        if (!_countries.contains(_selectedCountry)) {
+          _selectedCountry = 'United States';
+        }
+      });
+    });
   }
 
   void _saveChanges() async {
-    await DataManager.setName(_nameController.text);
-    await DataManager.setUsername(_usernameController.text);
-    await DataManager.setAge(_age.toInt());
-    await DataManager.setCountry(_selectedCountry);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    final updatedProfile = UserProfile(
+      name: _nameController.text,
+      username: _usernameController.text,
+      age: _age.toInt(),
+      country: _selectedCountry,
+    );
+    
+    await userProvider.saveProfile(updatedProfile);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

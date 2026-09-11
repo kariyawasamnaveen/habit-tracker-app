@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:habit_app/widgets/premium_text_field.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/user_provider.dart';
+import 'package:habit_app/providers/habit_provider.dart';
+import 'package:habit_app/models/user_profile.dart';
+import 'package:habit_app/models/habit.dart';
 import 'package:habit_app/data_manager.dart';
 import 'package:habit_app/screens/home_screen.dart';
 
@@ -35,17 +41,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     
-    await DataManager.setName(_nameController.text.trim());
-    await DataManager.setUsername(_usernameController.text.trim());
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+
+    final newProfile = UserProfile(
+      name: _nameController.text.trim(),
+      username: _usernameController.text.trim(),
+      age: _age.toInt(),
+      country: _country,
+    );
+    await userProvider.saveProfile(newProfile);
+    
     await DataManager.setPassword(_passwordController.text.trim());
-    await DataManager.setIsLoggedIn(true);
-    await DataManager.setAge(_age.toInt());
-    await DataManager.setCountry(_country);
     
     for (var habitName in _selectedHabits) {
-      final habit = _prebuiltHabits.firstWhere((h) => h['name'] == habitName);
-      await DataManager.addHabit(habitName, habit['color']!);
+      final habitData = _prebuiltHabits.firstWhere((h) => h['name'] == habitName);
+      await habitProvider.addHabit(Habit(
+        name: habitName,
+        colorHex: habitData['color']!,
+      ));
     }
+
+    await userProvider.login();
 
     if (mounted) {
       Navigator.pushAndRemoveUntil(
@@ -94,21 +111,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       const SizedBox(height: 15),
                       
-                      _buildPremiumTextField(
+                      PremiumTextField(
                         controller: _nameController,
                         hint: 'john smith',
                         icon: Icons.person,
                       ),
                       const SizedBox(height: 15),
                       
-                      _buildPremiumTextField(
+                      PremiumTextField(
                         controller: _usernameController,
                         hint: '@ jsmith',
                         icon: Icons.alternate_email,
                       ),
                       const SizedBox(height: 15),
                       
-                      _buildPremiumTextField(
+                      PremiumTextField(
                         controller: _passwordController,
                         hint: 'Create a password',
                         icon: Icons.lock_outline,
@@ -123,9 +140,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           activeTrackColor: const Color(0xFF1877F2),
-                          inactiveTrackColor: Colors.white.withOpacity(0.3), // Changed to visible white track
+                          inactiveTrackColor: Colors.white.withValues(alpha: 0.3), // Changed to visible white track
                           thumbColor: Colors.white,
-                          overlayColor: Colors.white.withOpacity(0.2),
+                          overlayColor: Colors.white.withValues(alpha: 0.2),
                           trackHeight: 3.0, // Slimmer track
                         ),
                         child: Slider(
@@ -149,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.12), // Increased to give faded edge look
+                              color: Colors.black.withValues(alpha: 0.12), // Increased to give faded edge look
                               blurRadius: 20,
                               offset: const Offset(0, 5),
                             ),
@@ -205,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 borderRadius: BorderRadius.circular(20), // More perfectly rounded pills
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.12), // Increased to give faded edge look
+                                    color: Colors.black.withValues(alpha: 0.12), // Increased to give faded edge look
                                     blurRadius: 15,
                                     offset: const Offset(0, 4),
                                   ),
@@ -232,7 +249,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.15), // Soft faded shadow
+                                color: Colors.black.withValues(alpha: 0.15), // Soft faded shadow
                                 blurRadius: 20,
                                 offset: const Offset(0, 5),
                               ),
@@ -265,39 +282,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildPremiumTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool obscureText = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12), // Increased to give faded edge look
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        style: const TextStyle(color: Colors.black87, fontSize: 15),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w400),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 18, right: 10),
-            child: Icon(icon, color: const Color(0xFF1877F2), size: 20),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
-        ),
-      ),
-    );
-  }
 }

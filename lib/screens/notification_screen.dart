@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:habit_app/utils/color_utils.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/habit_provider.dart';
 import 'package:habit_app/data_manager.dart';
 import 'package:habit_app/services/notification_service.dart';
 
@@ -21,20 +24,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    final selected = DataManager.selectedHabitsMap;
-    final completed = DataManager.completedHabitsMap;
-    _allHabits = {...selected, ...completed};
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+      final selected = { for (var h in habitProvider.selectedHabits) h.name: h.colorHex };
+      final completed = { for (var h in habitProvider.completedHabits) h.name: h.colorHex };
+      setState(() {
+        _allHabits = {...selected, ...completed};
+      });
+    });
     
     _enableNotifications = DataManager.isNotificationsEnabled;
     _selectedTime = DataManager.notificationTime;
     _selectedHabitsForNotification = DataManager.notificationHabits.toSet();
-  }
-
-  Color _parseColor(String hexStr) {
-    if (hexStr.length == 6) {
-      hexStr = "FF$hexStr";
-    }
-    return Color(int.parse(hexStr, radix: 16));
   }
 
   @override
@@ -69,8 +70,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 const Text('Enable Notifications', style: TextStyle(fontSize: 16, color: Colors.black54, fontWeight: FontWeight.w500)),
                 CupertinoSwitch(
                   value: _enableNotifications,
-                  activeColor: Colors.grey.shade400, // Matching mockup (greyish toggle)
-                  trackColor: Colors.grey.shade300,
+                  activeTrackColor: Colors.grey.shade400, // Matching mockup (greyish toggle)
+                  inactiveTrackColor: Colors.grey.shade300,
                   thumbColor: Colors.grey.shade600,
                   onChanged: (val) async {
                     setState(() {
@@ -93,7 +94,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               runSpacing: 10,
               children: _allHabits.keys.map((habitName) {
                 bool isSelected = _selectedHabitsForNotification.contains(habitName);
-                Color habitColor = _parseColor(_allHabits[habitName]);
+                Color habitColor = ColorUtils.parseColor(_allHabits[habitName]);
                 
                 return GestureDetector(
                   onTap: () {
@@ -108,7 +109,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSelected ? habitColor.withOpacity(0.1) : Colors.white,
+                      color: isSelected ? habitColor.withValues(alpha: 0.1) : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: isSelected ? habitColor : Colors.black12,
@@ -157,7 +158,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       color: isSelected ? const Color(0xFFEDE7F6) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF673AB7).withOpacity(0.5) : Colors.black12,
+                        color: isSelected ? const Color(0xFF673AB7).withValues(alpha: 0.5) : Colors.black12,
                         width: 1,
                       ),
                     ),

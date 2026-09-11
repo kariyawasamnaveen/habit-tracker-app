@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:habit_app/data_manager.dart';
+import 'package:habit_app/utils/color_utils.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/habit_provider.dart';
+import 'package:habit_app/models/habit.dart';
 
 class ConfigureHabitScreen extends StatefulWidget {
   const ConfigureHabitScreen({super.key});
@@ -24,36 +27,19 @@ class _ConfigureHabitScreenState extends State<ConfigureHabitScreen> {
   };
   
   String _selectedColorName = 'Amber';
-  Map<String, dynamic> _habits = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHabits();
-  }
-
-  void _loadHabits() {
-    setState(() {
-      _habits = DataManager.selectedHabitsMap;
-    });
-  }
-
-  Color _parseColor(String hexStr) {
-    if (hexStr.length == 6) {
-      hexStr = "FF$hexStr";
-    }
-    return Color(int.parse(hexStr, radix: 16));
-  }
 
   void _addHabit() async {
     if (_nameController.text.isNotEmpty) {
-      await DataManager.addHabit(
-        _nameController.text, 
-        _colorOptions[_selectedColorName]!
+      final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+      final newHabit = Habit(
+        name: _nameController.text,
+        colorHex: _colorOptions[_selectedColorName]!
       );
+      await habitProvider.addHabit(newHabit);
       _nameController.clear(); // Clear field after adding
-      _loadHabits(); // Refresh list
-      FocusScope.of(context).unfocus(); // Dismiss keyboard
+      if (mounted) {
+        FocusScope.of(context).unfocus(); // Dismiss keyboard
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a habit name')),
@@ -62,12 +48,17 @@ class _ConfigureHabitScreenState extends State<ConfigureHabitScreen> {
   }
 
   void _deleteHabit(String habitName) async {
-    await DataManager.removeHabit(habitName);
-    _loadHabits(); // Refresh list after deleting
+    final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+    await habitProvider.removeHabit(habitName);
   }
 
   @override
   Widget build(BuildContext context) {
+    final habitProvider = Provider.of<HabitProvider>(context);
+    final Map<String, dynamic> habitsMap = {
+      for (var h in habitProvider.selectedHabits) h.name: h.colorHex
+    };
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -134,7 +125,7 @@ class _ConfigureHabitScreenState extends State<ConfigureHabitScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _parseColor(_colorOptions[colorName]!),
+                          color: ColorUtils.parseColor(_colorOptions[colorName]!),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Center(
@@ -179,11 +170,11 @@ class _ConfigureHabitScreenState extends State<ConfigureHabitScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _habits.length,
+              itemCount: habitsMap.length,
               itemBuilder: (context, index) {
-                final habitName = _habits.keys.elementAt(index);
-                final colorHex = _habits[habitName];
-                final color = _parseColor(colorHex);
+                final habitName = habitsMap.keys.elementAt(index);
+                final colorHex = habitsMap[habitName];
+                final color = ColorUtils.parseColor(colorHex);
                 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),

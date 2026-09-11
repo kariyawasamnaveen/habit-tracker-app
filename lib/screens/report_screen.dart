@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:habit_app/data_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:habit_app/providers/habit_provider.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -15,15 +16,17 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
-    // Combine all habits just for display in report
-    final Map<String, dynamic> selected = DataManager.selectedHabitsMap;
-    final Map<String, dynamic> completed = DataManager.completedHabitsMap;
-    _habitNames = [...selected.keys, ...completed.keys];
-    
-    // Add dummy ones if completely empty just to show the table properly
-    if (_habitNames.isEmpty) {
-      _habitNames = ['Practice typing', 'Walk 100 steps', 'Meditate'];
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+      final selected = habitProvider.selectedHabits.map((h) => h.name).toList();
+      final completed = habitProvider.completedHabits.map((h) => h.name).toList();
+      setState(() {
+        _habitNames = [...selected, ...completed];
+        if (_habitNames.isEmpty) {
+          _habitNames = ['Practice typing', 'Walk 100 steps', 'Meditate'];
+        }
+      });
+    });
   }
 
   // Dummy logic to generate random check/cross based on habit name and day length
@@ -50,7 +53,7 @@ class _ReportScreenState extends State<ReportScreen> {
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(Colors.grey.withOpacity(0.05)),
+            headingRowColor: WidgetStateProperty.all(Colors.grey.withValues(alpha: 0.05)),
             columnSpacing: 25,
             columns: [
               const DataColumn(label: Text('Habit', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87))),
